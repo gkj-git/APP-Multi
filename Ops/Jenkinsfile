@@ -1,0 +1,77 @@
+pipeline {
+  agent any
+  environment {
+    AWS_ACCOUNT_ID = credentials('aws-account-id') // Jenkins credential (secret text)
+    AWS_REGION = credentials('aws-region') // Jenkins credential (secret text)
+    SONAR_TOKEN = credentials('sonar-token') // Jenkins credential (secret text)
+    ECR_REPO = "Mutiverse"
+    IMAGE_TAG = "${GIT_COMMIT ?: 'latest'}"
+  }
+  options { timestamps() }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+    stage('Install') {
+      steps {
+        sh 'npm ci'
+      }
+    }
+    stage('Lint & Unit tests') {
+      steps {
+        sh 'npm run lint'
+        sh 'npm test'
+      }
+    }
+    stage('SonarQube Analysis') {
+      environment { SONAR_HOST = 'http://sonarqube:9000' }
+      steps {
+        withEnv(["SONAR_HOST_URL=${env.SONAR_HOST}"]) {
+          sh '''
+            sonar-scanner               -Dsonar.projectKey=Mutiverse               -Dsonar.sources=.               -Dsonar.host.url=$SONAR_HOST_URL               -Dsonar.login=$SONAR_TOKEN
+          '''
+        }
+      }
+    }
+    stage('Build Docker Image') {
+      steps {
+        sh 'docker build -t ${ECR_REPO}:${IMAGE_TAG} .'
+      }
+    }
+    stage('Trivy Scan') {
+      steps {
+        sh 'trivy image --severity HIGH,CRITICAL ${ECR_REPO}:${IMAGE_TAG} || true'
+      }
+    }
+    stage('Push to ECR') {
+      steps {
+        withCredentials([string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'), string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')]) {
+          sh '''
+            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            aws configure set default.region ${AWS_REGION}
+            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+            aws ecr create-repository --repository-name ${ECR_REPO} --region ${AWS_REGION} || true
+            docker tag ${ECR_REPO}:${IMAGE_TAG} ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
+            docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
+          '''
+        }
+      }
+    }
+    stage('Deploy (ArgoCD)') {
+      steps {
+        sh '''
+          # Optional: trigger ArgoCD app sync via argocd CLI or API if you have access
+          echo "Deployment pushed — ArgoCD should pick up changes from the git repo and sync."
+        '''
+      }
+    }
+  }
+  post {
+    always {
+      archiveArtifacts artifacts: '**/coverage/**, **/target/*.jar', allowEmptyArchive: true
+    }
+    success { echo 'Pipeline succeeded' }
+    failure { echo 'Pipeline failed' }
+  }
+}

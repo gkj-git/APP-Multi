@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  dashboard.json: |
+    {
+      "id": null,
+      "title": "My App - Basic",
+      "panels": [
+        {
+          "type": "text",
+          "title": "Uptime",
+          "gridPos": {"x":0,"y":0,"w":24,"h":3},
+          "options": {"content": "Placeholder dashboard for Mutiverse"}
+        }
+      ]
+    }

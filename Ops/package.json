@@ -1,0 +1,12 @@
+{
+  "name": "Mutiverse",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"No tests yet\" && exit 0",
+    "lint": "eslint . || true",
+    "build": "echo build step"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
