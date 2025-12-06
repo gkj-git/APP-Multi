@@ -3,7 +3,7 @@ pipeline {
   environment {
     AWS_ACCOUNT_ID = "${AWS_ACCOUNT_ID}"
     AWS_REGION = "${AWS_REGION}"
-    ECR_REPO = "my-app"
+    ECR_REPO = "Mutiverse"
   }
   stages {
     stage('Checkout') {
@@ -18,7 +18,7 @@ pipeline {
         // Sonar analysis (example)
         sh '''
           sonar-scanner \
-            -Dsonar.projectKey=my-app \
+            -Dsonar.projectKey=Mutiverse \
             -Dsonar.sources=. \
             -Dsonar.host.url=http://sonarqube:9000 \
             -Dsonar.login=$SONAR_TOKEN
@@ -27,15 +27,15 @@ pipeline {
     }
     stage('Build & Scan') {
       steps {
-        sh 'docker build -t my-app:$GIT_COMMIT .'
-        sh 'trivy image --severity HIGH,CRITICAL my-app:$GIT_COMMIT || true'
+        sh 'docker build -t Mutiverse:$GIT_COMMIT .'
+        sh 'trivy image --severity HIGH,CRITICAL Mutiverse:$GIT_COMMIT || true'
       }
     }
     stage('Push to ECR') {
       steps {
         sh '''
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.$AWS_REGION.amazonaws.com
-          docker tag my-app:$GIT_COMMIT ${AWS_ACCOUNT_ID}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GIT_COMMIT
+          docker tag Mutiverse:$GIT_COMMIT ${AWS_ACCOUNT_ID}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GIT_COMMIT
           docker push ${AWS_ACCOUNT_ID}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GIT_COMMIT
         '''
       }

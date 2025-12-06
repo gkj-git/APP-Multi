@@ -16,7 +16,7 @@ Replace placeholders (AWS_ACCOUNT_ID, REGION, REPLACE_WITH_IMAGE, repo URLs) wit
 Quick start:
 1. Populate AWS and Sonar secrets in Jenkins.
 2. Build & test: `npm ci && npm test`
-3. Build image: `docker build -t my-app:latest .`
-4. Scan: `./trivy_scan.sh my-app:latest`
+3. Build image: `docker build -t Mutiverse:latest .`
+4. Scan: `./trivy_scan.sh Mutiverse:latest`
 5. Push to ECR: update Jenkinsfile env and run pipeline.
 6. Deploy: use ArgoCD to sync the `k8s` directory.
