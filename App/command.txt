@@ -1,0 +1,22 @@
+
+#Hosting HTML to EC2 
+
+#Conenct to EC2 
+
+sudo su 
+yum update -y 
+yum install -y httpd 
+cd /var/www/html/
+wget git_URL/archive/refs/heads/main.zip
+unzip main.zip
+cp -r Multiverse-main/* /var/www/html/
+rm -rf Multiverse-main main.zip 
+systemctl enable httpd 
+systemctl start httpd 
+
+#Jenkins Installation
+
+sudo yum update 
+sudo yum install java 
+get installation from Jenkins.io -> documentation 
+install git -> since IDE couldn't default the execute path for jenkins 

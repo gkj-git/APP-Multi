@@ -1,0 +1,15 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "My App - Basic",
+    "panels": [
+      {
+        "type": "text",
+        "title": "Uptime",
+        "gridPos": {"x":0,"y":0,"w":24,"h":3},
+        "options": {"content": "Placeholder dashboard for my-app"}
+      }
+    ]
+  },
+  "overwrite": true
+}
