@@ -1,3 +1,0 @@
-aws_region = "ca-central-1"
-ecr_repo_name = "Mutiverse"
-cluster_name = "Mutiverse-cluster"

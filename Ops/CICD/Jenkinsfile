@@ -1,0 +1,62 @@
+pipeline{
+    agent any
+    tools{
+        jdk 'jdk17'
+        terraform 'terraform'
+    }
+    stages{
+        stage('clean Workspace'){
+            steps{
+                cleanWS()
+            }
+        }
+    }
+
+         stage('checout form git'){
+            steps{
+                git btranch: 'main', url : ''
+            }
+         }
+
+         stage ('Terraform version'){
+            steps{
+                sh 'terraform-version'
+            }
+         }
+         stage("Sonaeqube Analysis"){
+            steps{
+                withSonarQubeEnv('sonar-server'){
+            sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName =Multiverse \
+            -Dsonar.projectKey=Multiverse '''
+          }
+         }
+         }
+         stage("quality gate"){
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+                }
+            }
+         }
+         stage('TRIVY FS SCAN'){
+            steps{
+                sh "trivy fs . > trivyfs.txt"
+            }
+         }
+         stage ('Executable permission to userdata'){
+            steps{
+                sh 'chmod 777 website.sh'
+            }
+         }
+         stage('Terraform init'){
+            steps{
+                sh 'terraform init'
+            }
+         }
+         stage('Terraform plan'){
+            steps{
+                sh'terraform plan'
+            }
+         }
+
+}
